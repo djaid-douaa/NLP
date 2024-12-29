@@ -1,0 +1,6 @@
+Flask
+ollama
+timeout-decorator
+flask-socketio
+flask-cors 
+eventlet

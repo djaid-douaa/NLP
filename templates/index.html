@@ -1,0 +1,150 @@
+<html>
+  <head>
+    <title>{{ title|default('Story Generator') }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #status {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      #messages {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-height: 100px;
+        white-space: pre-wrap;
+      }
+      .connected {
+        background-color: #dff0d8;
+        color: #3c763d;
+      }
+      .disconnected {
+        background-color: #f2dede;
+        color: #a94442;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{ title|default('Arabic Story Generator') }}</h1>
+    <div id="status" class="disconnected">Not Connected</div>
+
+    <div class="form-group">
+      <label for="age_category">Age Category:</label>
+      <select id="age_category">
+        {% for category in categories|default(['3-5', '6-8', '8-12']) %}
+        <option value="{{ category }}">{{ category|title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="moral">Moral Value:</label>
+      <input
+        type="text"
+        id="moral"
+        placeholder="Enter moral value (e.g., kindness, honesty)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="prompt">Story Prompt:</label>
+      <input type="text" id="prompt" placeholder="Enter your story prompt" />
+    </div>
+
+    <button onclick="sendStory()">Generate Story</button>
+
+    <h2>Generated Story:</h2>
+    <div id="messages"></div>
+
+    <script>
+      const socket = io('{{ socket_url|default("http://localhost:8000") }}', {
+        transports: ["websocket"],
+        path: "/socket.io",
+      });
+
+      socket.on("connect", () => {
+        const statusDiv = document.getElementById("status");
+        statusDiv.textContent = "Connected!";
+        statusDiv.className = "connected";
+        console.log("Connected to server with ID:", socket.id);
+      });
+
+      socket.on("disconnect", () => {
+        const statusDiv = document.getElementById("status");
+        statusDiv.textContent = "Disconnected";
+        statusDiv.className = "disconnected";
+      });
+
+      socket.on("partial_response", (data) => {
+        console.log("Partial:", data.content);
+        document.getElementById("messages").textContent = data.content;
+      });
+
+      socket.on("final_response", (data) => {
+        console.log("Final:", data.response);
+        document.getElementById("messages").textContent = data.response;
+      });
+
+      socket.on("error", (data) => {
+        console.error("Error:", data.error);
+        const statusDiv = document.getElementById("status");
+        statusDiv.textContent = "Error: " + data.error;
+        statusDiv.className = "disconnected";
+      });
+
+      function sendStory() {
+        const ageCategory = document.getElementById("age_category").value;
+        const moral = document.getElementById("moral").value;
+        const prompt = document.getElementById("prompt").value;
+
+        if (!moral || !prompt) {
+          alert("Please fill in all fields");
+          return;
+        }
+
+        socket.emit("chat", {
+          user_prompt: prompt,
+          age_category: ageCategory,
+          moral: moral,
+        });
+
+        document.getElementById("messages").textContent = "Generating story...";
+      }
+    </script>
+  </body>
+</html>
