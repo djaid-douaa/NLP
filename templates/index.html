@@ -57,6 +57,22 @@
         background-color: #f2dede;
         color: #a94442;
       }
+      #audio-section {
+        margin-top: 20px;
+        display: none;
+      }
+      #progress-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      #progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: #4caf50;
+      }
     </style>
   </head>
   <body>
@@ -86,10 +102,33 @@
       <input type="text" id="prompt" placeholder="Enter your story prompt" />
     </div>
 
+    <div class="form-group">
+      <label for="include_voice">
+        <input type="checkbox" id="include_voice" /> Generate Audio
+      </label>
+    </div>
+
+    <div class="form-group" id="speaker-section" style="display: none">
+      <label for="speaker">Select Speaker:</label>
+      <select id="speaker">
+        <option value="raid">Raid</option>
+        <option value="amina">Amina</option>
+        <option value="karim">Karim</option>
+      </select>
+    </div>
+
     <button onclick="sendStory()">Generate Story</button>
 
     <h2>Generated Story:</h2>
     <div id="messages"></div>
+
+    <div id="audio-section">
+      <h3>Audio Playback:</h3>
+      <div id="progress-container">
+        <div id="progress-bar"></div>
+      </div>
+      <audio id="audio-player" controls></audio>
+    </div>
 
     <script>
       const socket = io('{{ socket_url|default("http://localhost:8000") }}', {
@@ -120,6 +159,26 @@
         document.getElementById("messages").textContent = data.response;
       });
 
+      socket.on("audio_chunk", (data) => {
+        const audioPlayer = document.getElementById("audio-player");
+        const audioSection = document.getElementById("audio-section");
+        const progressBar = document.getElementById("progress-bar");
+
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(data.chunk), (c) => c.charCodeAt(0))],
+          { type: "audio/wav" }
+        );
+        const audioURL = window.URL.createObjectURL(audioBlob);
+        audioPlayer.src = audioURL;
+
+        audioSection.style.display = "block";
+        progressBar.style.width = "100%";
+      });
+
+      socket.on("audio_complete", () => {
+        console.log("Audio transmission complete");
+      });
+
       socket.on("error", (data) => {
         console.error("Error:", data.error);
         const statusDiv = document.getElementById("status");
@@ -127,23 +186,33 @@
         statusDiv.className = "disconnected";
       });
 
+      document
+        .getElementById("include_voice")
+        .addEventListener("change", (e) => {
+          const speakerSection = document.getElementById("speaker-section");
+          speakerSection.style.display = e.target.checked ? "block" : "none";
+        });
+
       function sendStory() {
         const ageCategory = document.getElementById("age_category").value;
         const moral = document.getElementById("moral").value;
         const prompt = document.getElementById("prompt").value;
+        const includeVoice = document.getElementById("include_voice").checked;
+        const speaker = document.getElementById("speaker").value;
 
         if (!moral || !prompt) {
           alert("Please fill in all fields");
           return;
         }
-
+        document.getElementById("messages").textContent = "Generating story...";
+        document.getElementById("audio-section").style.display = "none";
         socket.emit("chat", {
           user_prompt: prompt,
           age_category: ageCategory,
           moral: moral,
+          include_voice: includeVoice,
+          speaker: speaker,
         });
-
-        document.getElementById("messages").textContent = "Generating story...";
       }
     </script>
   </body>

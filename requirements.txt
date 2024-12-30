@@ -4,3 +4,4 @@ timeout-decorator
 flask-socketio
 flask-cors 
 eventlet
+coqui-tts
