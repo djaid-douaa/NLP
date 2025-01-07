@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/prompt.css') }}"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="full-container">
+      <img
+        class="full-width-image"
+        src="{{ url_for('static', filename='images/Group 1.png') }}"
+        alt="Navbar"
+      />
+
+      <div class="heading">
+        سواءً أراد طفلك ركوب الأمواج، تسفح الفضاء والكواكب، التعرف على مجنمعات
+        مختلفة، أو التواصل مع الحيوانات، نصنع ذلك كله في منصتنا!
+      </div>
+      <div class="heading-container">
+        <span class="heading-sub">اصنع </span
+        ><span class="heading-text">عوالما</span
+        ><span class="heading-text-span"> أخرى داخل عالم طفلك</span>
+      </div>
+
+      <div class="main-content-wrapper">
+        <div class="main-div"></div>
+        <div class="sub-div">
+          <div class="sub-sub-div"></div>
+        </div>
+      </div>
+      <div class="age-style">
+        <div class="button-container">
+          <div class="age-button">من 9 إلى 10 سنوات</div>
+          <div class="age-button">من 6 إلى 8 سنوات</div>
+          <div class="age-button">من 3 إلى 5 سنوات</div>
+        </div>
+        <div class="age-select-style">الفئة العمرية المستهدفة</div>
+      </div>
+      <div class="select-wrapper">
+        <div class="select-container">
+          <select id="value-selector" class="value-sub-select">
+            <option value="">اختر قيمة</option>
+            <option value="الوفاء">الوفاء</option>
+            <option value="المساعدة">المساعدة</option>
+            <option value="التسامح">التسامح</option>
+            <option value="الصبر">الصبر</option>
+            <option value="التعاون">التعاون</option>
+            <option value="الصدق">الصدق</option>
+            <option value="الأمانة">الأمانة</option>
+          </select>
+          <div class="custom-value-wrapper">
+            <input
+              type="text"
+              id="custom-value"
+              placeholder="أو اكتب قيمة مخصصة"
+              class="input-prompt-class"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="prompt-container">
+        <textarea
+          class="input-area"
+          rows="5"
+          placeholder="درج وصفًا للقصة التي تريدها هنا"
+          id="storyPrompt"
+        ></textarea>
+
+        <div class="button-container">
+          <button id="submit-button">إرسال</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scrollable-story-container">
+      <div id="story-title"></div>
+      <div id="scrollable-story"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/prompt.js') }}"></script>
+  </body>
+</html>
