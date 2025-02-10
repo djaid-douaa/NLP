@@ -8,28 +8,6 @@ from app import socketio, app
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-@app.route("/prompt")
-def prompt():
-    return render_template("prompt.html")
-
-@app.route("/")
-def chat():
-    return render_template("landing.html")
-
-@app.route("/stories")
-def stories():
-    return render_template("stories.html")
-
-@app.route("/story")
-def story():
-    return render_template("story.html")
-
-
-
 @socketio.on("connect")
 def handle_connect():
     print(f"Client connected with sid: {request.sid}")

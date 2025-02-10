@@ -1,6 +1,8 @@
+import base64
 from flask import request, copy_current_request_context, jsonify
 from flask_socketio import emit
 import asyncio
+from utils.voice import get_voice
 import requests
 import os
 from utils.chat import chat_with_model
@@ -19,8 +21,7 @@ def handle_chat(data):
     user_prompt = data["user_prompt"]
     age_category = data["age_category"]
     moral = data["moral"]
-    include_voice = data.get("include_voice", False)
-    speaker = data.get("speaker", "raid")
+
     sid = request.sid
 
     @copy_current_request_context
@@ -33,23 +34,21 @@ def handle_chat(data):
             response = loop.run_until_complete(
                 chat_with_model(user_prompt, age_category, moral, sid)
             )
-            socketio.emit("final_response", {"response": response}, room=sid)
 
-            # Handle voice generation
-            if include_voice:
-                print("processing the text as audio")
-                emit(
-                    "progress", {"message": "Sending text to voice server..."}, room=sid
-                )
-                payload = {"text": response, "speaker": speaker}
+            # Get the audio from get_voice(response). If it returns a generator, join it.
+            audio_generator = get_voice(
+                response
+            )  # Assume this returns a generator yielding bytes
+            # Convert the generator into a single bytes object
+            audio_bytes = b"".join(audio_generator)
 
-                flask_response = requests.post(FLASK_SERVER_URL, json=payload)
-                if not flask_response.ok:
-                    raise Exception(f"Voice server error: {flask_response.text}")
+            # Encode the audio bytes to a Base64 string
+            audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
 
-                audio_bytes = flask_response.json().get("message")
-                emit("audio_chunk", {"chunk": jsonify(audio_bytes)}, room=sid)
-                emit("audio_complete", {"message": "Audio file sent"}, room=sid)
+            # Emit the final response with both text and audio
+            socketio.emit(
+                "final_response", {"response": response, "audio": audio_b64}, room=sid
+            )
 
         except Exception as e:
             print(f"Error in async_chat: {str(e)}")
