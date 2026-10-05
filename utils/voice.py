@@ -1,5 +1,8 @@
-API_KEY = "sk_c63682911918f4f4a301b583af7ccd2e9933ae4d7bdba1e6"
+import os
 from elevenlabs.client import ElevenLabs
+
+# Set ELEVENLABS_API_KEY in your environment before running the app.
+API_KEY = os.environ.get("ELEVENLABS_API_KEY")
 
 
 def get_voice(text):
